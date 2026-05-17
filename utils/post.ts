@@ -1,8 +1,9 @@
 import { allPosts, Post } from 'contentlayer2/generated';
 import { compareDesc, format, parseISO } from 'date-fns';
+import { filterVisiblePosts } from './post-visibility';
 
 export const getPostTimeLine = (tag = '') => {
-  const posts = allPosts.sort((a, b) =>
+  const posts = filterVisiblePosts(allPosts).sort((a, b) =>
     compareDesc(new Date(a.date), new Date(b.date))
   );
 

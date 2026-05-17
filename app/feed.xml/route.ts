@@ -1,3 +1,4 @@
+import { filterVisiblePosts } from '@/utils';
 import { allPosts, Post } from 'contentlayer2/generated';
 import { compareDesc } from 'date-fns';
 import RSS from 'rss';
@@ -20,7 +21,7 @@ export async function GET() {
     language: 'en',
     image_url: 'https://magren.cc/avatar.png',
   });
-  const data = allPosts.sort((a, b) =>
+  const data = filterVisiblePosts(allPosts).sort((a, b) =>
     compareDesc(new Date(a.date), new Date(b.date))
   );
 

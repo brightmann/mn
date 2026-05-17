@@ -2,6 +2,7 @@
 
 import { NormalContainer } from '@/components/layout/container/NomalContainer';
 import { calculateReadingStats } from '@/utils/post';
+import { filterVisiblePosts } from '@/utils';
 import { Post, allPosts } from 'contentlayer2/generated';
 import { AnimatePresence, motion } from 'framer-motion';
 import { compareDesc, format, parseISO } from 'date-fns';
@@ -231,15 +232,11 @@ export default function Posts() {
 
   // 获取所有文章并排序（排除 weekly 类型的文章）
   const allPostsData = useMemo(() => {
-    let posts = allPosts
+    const posts = filterVisiblePosts(allPosts)
       .slice()
       // 排除 weekly 类型的文章
       .filter((post) => post._raw.flattenedPath !== 'weekly' && !post._raw.flattenedPath.startsWith('weekly/'))
       .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
-
-    if (process.env.NODE_ENV !== 'development') {
-      posts = posts.filter((post) => !post.draft);
-    }
 
     return posts;
   }, []);

@@ -5,19 +5,21 @@ import { PostProvider } from '@/providers/post/PostProvider';
 import { PhotoProvider } from '@/components/ui/img/PreviewImage';
 import { BackButton } from '@/components/ui/button/BackButton';
 import { MDXContent } from '@/components/MDXContent';
+import { filterVisiblePosts, findVisiblePostByFlattenedPath } from '@/utils';
 import clsx from 'clsx';
 import { allPosts } from 'contentlayer2/generated';
 import { format, parseISO } from 'date-fns';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 export const generateStaticParams = async () =>
-  allPosts.map((post) => ({ slug: post._raw.flattenedPath.split('/') }));
+  filterVisiblePosts(allPosts).map((post) => ({ slug: post._raw.flattenedPath.split('/') }));
 
 export const generateMetadata = async (props: { params: Promise<{ slug: string[] }> }) => {
   const params = await props.params;
   const slugPath = params.slug.join('/');
-  const post = allPosts.find((post) => post._raw.flattenedPath === slugPath);
-  if (!post) throw new Error(`Post not found for slug: ${slugPath}`);
+  const post = findVisiblePostByFlattenedPath(allPosts, slugPath);
+  if (!post) notFound();
   return {
     title: post.title,
     description: post.description,
@@ -59,8 +61,8 @@ const PostTitle = ({
 const PostLayout = (props: { params: Promise<{ slug: string[] }> }) => {
   const params = use(props.params);
   const slugPath = params.slug.join('/');
-  const post = allPosts.find((post) => post._raw.flattenedPath === slugPath);
-  if (!post) throw new Error(`Post not found for slug: ${slugPath}`);
+  const post = findVisiblePostByFlattenedPath(allPosts, slugPath);
+  if (!post) notFound();
 
   return (
     <PostContainer>

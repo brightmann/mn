@@ -1,13 +1,13 @@
 import { NormalContainer } from '@/components/layout/container/NomalContainer';
+import { filterVisiblePosts } from '@/utils';
 import { allPosts, Post } from 'contentlayer2/generated';
 import { compareDesc, format, parseISO } from 'date-fns';
 import { WeeklyLink } from '@/components/ui/link/WeeklyLink';
 
 export default function Weekly() {
   // 在服务器端处理数据
-  const weeklyPosts = allPosts
+  const weeklyPosts = filterVisiblePosts(allPosts)
     .filter((post) => post._raw.flattenedPath === 'weekly' || post._raw.flattenedPath.startsWith('weekly/'))
-    .filter((post) => process.env.NODE_ENV === 'development' || !post.draft)
     .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
 
   // 按年份分组
@@ -71,4 +71,3 @@ export default function Weekly() {
     </NormalContainer>
   );
 }
-
