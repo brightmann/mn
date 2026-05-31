@@ -40,27 +40,21 @@ export const getPostTimeLine = (tag = '') => {
 
 /**
  * 计算文章的字数和阅读时间
- * @param bodyCode MDX 编译后的代码字符串
+ * @param raw 文章的 markdown 正文（contentlayer 的 body.raw，已不含 frontmatter）
  * @returns { words: number, readingTime: number } 字数和阅读时间（分钟）
  */
-export const calculateReadingStats = (bodyCode: string) => {
-  // 移除 React/JSX 代码，提取文本内容
-  // 移除字符串中的内容（这些是实际的文章内容）
-  let text = bodyCode
-    // 移除 JSX 标签和属性
-    .replace(/<[^>]+>/g, ' ')
-    // 移除函数调用和变量名
-    .replace(/[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/g, ' ')
-    // 移除 import/export 语句
-    .replace(/import\s+.*?from\s+['"].*?['"]/g, ' ')
-    .replace(/export\s+.*?from\s+['"].*?['"]/g, ' ')
-    // 提取字符串字面量中的内容（这些通常是文章内容）
-    .replace(/['"`]([^'"`]+)['"`]/g, '$1')
-    // 移除代码块标记
+export const calculateReadingStats = (raw: string) => {
+  // 从 markdown 正文中提取纯文本
+  let text = raw
+    // 移除代码块和行内代码（其中的代码不计入正文字数）
     .replace(/```[\s\S]*?```/g, ' ')
-    // 移除注释
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/\/\/.*/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    // 移除图片 ![alt](url)
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    // 链接 [text](url) 只保留显示文字，丢弃 url
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    // 移除 HTML / JSX 标签
+    .replace(/<[^>]+>/g, ' ')
     // 移除特殊字符，保留中英文和基本标点
     .replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s，。！？、；：""''（）【】《》]/g, ' ')
     // 合并空格
@@ -69,7 +63,7 @@ export const calculateReadingStats = (bodyCode: string) => {
 
   // 中文字符按字计算
   const chineseChars = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
-  
+
   // 英文按单词计算（移除中文后）
   const englishText = text.replace(/[\u4e00-\u9fa5]/g, ' ').trim();
   const englishWords = englishText
@@ -85,7 +79,7 @@ export const calculateReadingStats = (bodyCode: string) => {
   // 分别计算后取较大值，更符合实际阅读体验
   const chineseTime = chineseChars > 0 ? Math.ceil(chineseChars / 300) : 0;
   const englishTime = englishWords > 0 ? Math.ceil(englishWords / 200) : 0;
-  
+
   // 阅读时间取两者之和（因为阅读时会同时处理中英文）
   const readingTime = Math.max(1, chineseTime + englishTime);
 

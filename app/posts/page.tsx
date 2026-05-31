@@ -38,10 +38,10 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const supportsHover = useSupportsHover();
   const { words, readingTime } = useMemo(() => {
-    if (!post.body?.code) {
+    if (!post.body?.raw) {
       return { words: 0, readingTime: 1 };
     }
-    return calculateReadingStats(post.body.code);
+    return calculateReadingStats(post.body.raw);
   }, [post.body]);
 
   return (
